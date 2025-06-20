@@ -41,6 +41,7 @@ INSERT INTO sightings (sighting_id, species_id, ranger_id, location, sighting_ti
 (3, 3, 3, 'Bamboo Grove East', '2024-05-15 09:10:00', 'Feeding observed'),
 (4, 1, 2, 'Snowfall Pass', '2024-05-18 18:30:00', NULL);
 
+SELECT * FROM rangers;
 SELECT * FROM sightings;
 
 -- Register a new ranger with provided data with name = 'Derek Fox' and region = 'Coastal Plains'
@@ -67,5 +68,70 @@ GROUP BY
     r.name
 ORDER BY
     r.name ASC;
+
+--List species that have never been sighted.
+SELECT s.common_name
+FROM species s
+WHERE s.species_id NOT IN (
+    SELECT species_id FROM sightings
+);
+
+-- Show the most recent 2 sightings
+SELECT
+    s.common_name,
+    si.sighting_time,
+    r.name
+FROM
+    sightings si
+JOIN
+    species s ON si.species_id = s.species_id
+JOIN
+    rangers r ON si.ranger_id = r.ranger_id
+ORDER BY
+    si.sighting_time DESC
+LIMIT 2;
+
+-- Update all species discovered before year 1800 to have status 'Historic'.
+
+UPDATE species
+SET
+    conservation_status = 'Historic'
+WHERE
+    EXTRACT(YEAR FROM discovery_date) < 1800
+
+SELECT * FROM species
+
+-- Label each sighting's time of day as 'Morning', 'Afternoon', or 'Evening'.
+CREATE VIEW sightings_with_day_time AS
+SELECT
+  sighting_id,
+  CASE
+    WHEN EXTRACT(HOUR FROM sighting_time) < 12 THEN 'Morning'
+    WHEN EXTRACT(HOUR FROM sighting_time) <= 17 THEN 'Afternoon'
+    ELSE 'Evening'
+  END AS time_of_day
+FROM sightings;
+
+SELECT * FROM sightings_with_day_time
+
+-- Delete rangers who have never sighted any species
+SELECT * FROM rangers
+
+DELETE FROM rangers
+WHERE
+    rangers.ranger_id NOT IN(
+        SELECT ranger_id FROM sightings
+    )
+
+SELECT * FROM rangers
+
+
+
+
+
+
+
+
+
 
 
